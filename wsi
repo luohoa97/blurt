@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/bash
 #If you replace the shell above with bash, note also lines 121 to 124
 # Copyright (c) 2024 Quantius Benignus
 # 
@@ -111,19 +111,21 @@ done
 rec -q -t wav $ramf rate 16k silence 1 0.1 1% 1 2.0 5%  2>/dev/null
  
 if [ -n "$IPnPORT" ]; then
-    str=$(curl -S -s $IPnPORT/inference \
+    str=$(curl -S -s "$IPnPORT/inference" \
         -H "Content-Type: multipart/form-data" \
         -F file="@$ramf" \
         -F temperature="0.0" \
         -F temperature_inc="0.2" \
         -F response_format="text")
-# | jq -r '.text' )
-elif command -v $WHISPERFILE &>/dev/null ; then 
-    str="$($WHISPERFILE -t $NTHR -nt -f $ramf 2>/dev/null)"
-    #One can still use the standalone model with the whisperfile, if so desired:
-    #str="$($WHISPERFILE -t $NTHR -nt -m $model -f $ramf 2>/dev/null)"
+    # | jq -r '.text' )
+elif command -v "$WHISPERFILE" &>/dev/null; then
+    # Run whisperfile using NTHR threads on the input file
+    str="$("$WHISPERFILE" -t "$NTHR" -nt -f "$ramf" 2>/dev/null)"
+
+    # Optional: use a specific model instead of the default
+    # str="$("$WHISPERFILE" -t "$NTHR" -nt -m "$model" -f "$ramf" 2>/dev/null)"
 else
-    str="$(transcribe -t $NTHR -nt -m $model -f $ramf 2>/dev/null)" 
+    str="$(transcribe -t "$NTHR" -nt -m "$model" -f "$ramf" 2>/dev/null)" 
 fi
 # Whisper detected non-speech events such as (wind blowing): 
 str="${str/\(*\)}"   
